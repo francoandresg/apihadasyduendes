@@ -1,0 +1,22 @@
+# ===============================
+# 🔧 Manejo de CORS (localhost + producción)
+# ===============================
+<IfModule mod_headers.c>
+    # Detecta el origen dinámicamente (solo permite los tuyos)
+    SetEnvIf Origin "^(https://app\.hadasyduendes\.cl|http://localhost:3000)$" AccessControlAllowOrigin=$0
+
+    Header always set Access-Control-Allow-Origin "%{AccessControlAllowOrigin}e" env=AccessControlAllowOrigin
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>
+
+# ===============================
+# 🧠 Manejo del preflight OPTIONS
+# ===============================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Si la petición es OPTIONS, responde 200 y detiene el flujo
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ - [R=200,L]
+</IfModule>
