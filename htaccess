@@ -1,11 +1,13 @@
 # ===============================
-# 🌐 CORS - React frontend (localhost y producción)
+# 🌐 CORS - React frontend (local y producción)
 # ===============================
-
 <IfModule mod_headers.c>
-    # Siempre definir primero los headers
-    Header set X-Debug-Test "HTACCESS OK"
-    Header always set Access-Control-Allow-Origin "http://localhost:3000"
+    # Debug header (opcional)
+    Header always set X-Debug-Test "HTACCESS OK"
+
+    # Allow CORS dinámico según origen
+    SetEnvIf Origin "http(s)?://(localhost:3000|app.hadasyduendes\.cl)$" ORIGIN=$0
+    Header always set Access-Control-Allow-Origin %{ORIGIN}e env=ORIGIN
     Header always set Access-Control-Allow-Credentials "true"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
@@ -16,12 +18,13 @@
 # ===============================
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /apihadasyduendes/
+    # Cambia esta línea solo si tu proyecto NO está en la raíz
+    # RewriteBase /apihadasyduendes/
 
-    # Si es una petición OPTIONS, responder 200 y detener el flujo
+    # Responder 200 a OPTIONS y detener flujo
     RewriteCond %{REQUEST_METHOD} OPTIONS
     RewriteRule ^(.*)$ - [L]
-    
+
     # ===============================
     # ⚙️ Ruteo limpio hacia index.php
     # ===============================
