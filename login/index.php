@@ -94,7 +94,8 @@ if ($user = $result->fetch_assoc()) {
                 "username" => $user['username'],
                 "email" => $user['email'],
                 "role" => $user['role'],
-                "profile" => $user['profile']
+                "profile" => $user['profile'],
+                "nameuser" => $user['user']
             ]
         ];
 
@@ -110,7 +111,8 @@ if ($user = $result->fetch_assoc()) {
                 "email" => $user['email'],
                 "role" => $user['role'],
                 "profile" => $user['profile'],
-                "theme" => $user['theme']
+                "theme" => $user['theme'],
+                "nameuser" => $user['user']
             ]
         ]);
     } else {
