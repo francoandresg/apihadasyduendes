@@ -10,18 +10,20 @@ use Firebase\JWT\Key;
 // Cargar variables de entorno
 // =======================
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad(); // 👈 safeLoad evita error si falta el .env
+$dotenv->safeLoad();
 
 header("Content-Type: application/json");
 
 // =======================
-// Configuración básica JWT
+// Configuración JWT
 // =======================
 $secret_key = $_ENV['JWT_SECRET'] ?? '';
 $issuer = $_ENV['JWT_ISSUER'] ?? 'http://localhost';
 $audience = $_ENV['JWT_AUDIENCE'] ?? 'http://localhost:3000';
 $issued_at = time();
-$expiration_time = $issued_at + (60 * 60 * ((int)($_ENV['JWT_EXPIRE_HOURS'] ?? 2))); // por defecto 2 hrs
+
+// Expira a medianoche
+$expiration_time = strtotime('23:59:59');
 
 if (empty($secret_key)) {
     http_response_code(500);
@@ -30,7 +32,7 @@ if (empty($secret_key)) {
 }
 
 // ------------------
-// Validación de método
+// Validación método
 // ------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

@@ -8,8 +8,8 @@ switch ($url) {
     case 'login':
         include __DIR__ . '/login/index.php';
         break;
-    case 'logout':
-        include __DIR__ . '/logout/index.php';
+    case 'verify':
+        include __DIR__ . '/verify/index.php';
         break;
     default:
         http_response_code(404);
