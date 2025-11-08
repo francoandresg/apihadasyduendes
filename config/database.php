@@ -1,11 +1,11 @@
 
 <?php
-require_once __DIR__ . '/../../app/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
 // Carga las variables del .env
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../../../');
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
 // Mostrar errores solo si APP_DEBUG es true

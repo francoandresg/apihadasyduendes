@@ -1,22 +1,31 @@
 # ===============================
-# 🔧 Manejo de CORS (localhost + producción)
+# 🌐 CORS - React frontend (localhost y producción)
 # ===============================
-<IfModule mod_headers.c>
-    # Detecta el origen dinámicamente (solo permite los tuyos)
-    SetEnvIf Origin "^(https://app\.hadasyduendes\.cl|http://localhost:3000)$" AccessControlAllowOrigin=$0
 
-    Header always set Access-Control-Allow-Origin "%{AccessControlAllowOrigin}e" env=AccessControlAllowOrigin
+<IfModule mod_headers.c>
+    # Siempre definir primero los headers
+    Header set X-Debug-Test "HTACCESS OK"
+    Header always set Access-Control-Allow-Origin "http://localhost:3000"
     Header always set Access-Control-Allow-Credentials "true"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
 </IfModule>
 
 # ===============================
-# 🧠 Manejo del preflight OPTIONS
+# 🧠 Manejar preflight OPTIONS
 # ===============================
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Si la petición es OPTIONS, responde 200 y detiene el flujo
+    RewriteBase /apihadasyduendes/
+
+    # Si es una petición OPTIONS, responder 200 y detener el flujo
     RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ - [R=200,L]
+    RewriteRule ^(.*)$ - [L]
+    
+    # ===============================
+    # ⚙️ Ruteo limpio hacia index.php
+    # ===============================
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
 </IfModule>

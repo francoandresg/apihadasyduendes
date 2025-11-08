@@ -1,26 +1,33 @@
 <?php
-// ------------------
-// Configuración sesión compartida
-// ------------------
-ini_set('session.cookie_domain', '.hadasyduendes.cl');
-ini_set('session.cookie_samesite', 'None');
-ini_set('session.cookie_secure', '1');
-ini_set('session.cookie_httponly', '1');
-
-session_set_cookie_params([
-    'lifetime' => 0,                  // hasta cerrar navegador
-    'path' => '/',
-    'domain' => '.hadasyduendes.cl',
-    'secure' => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
-
-session_start();
-session_regenerate_id(true); // fuerza nuevo Set-Cookie
-
+include '../headers.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+// =======================
+// Cargar variables de entorno
+// =======================
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad(); // 👈 safeLoad evita error si falta el .env
+
 header("Content-Type: application/json");
+
+// =======================
+// Configuración básica JWT
+// =======================
+$secret_key = $_ENV['JWT_SECRET'] ?? '';
+$issuer = $_ENV['JWT_ISSUER'] ?? 'http://localhost';
+$audience = $_ENV['JWT_AUDIENCE'] ?? 'http://localhost:3000';
+$issued_at = time();
+$expiration_time = $issued_at + (60 * 60 * ((int)($_ENV['JWT_EXPIRE_HOURS'] ?? 2))); // por defecto 2 hrs
+
+if (empty($secret_key)) {
+    http_response_code(500);
+    echo json_encode(["error" => "JWT_SECRET no configurado en el .env"]);
+    exit();
+}
 
 // ------------------
 // Validación de método
@@ -74,25 +81,43 @@ $result = $stmt->get_result();
 // ------------------
 if ($user = $result->fetch_assoc()) {
     if (password_verify($password, trim($user['password']))) {
-        // Guardar info en sesión
-        $_SESSION['loggedin']   = true;
-        $_SESSION['id_user']    = $user['id_user'];
-        $_SESSION['user']       = $user['user'];
-        $_SESSION['id_role']    = $user['id_role'];
-        $_SESSION['role']       = $user['role'];
-        $_SESSION['id_profile'] = $user['id_profile'];
-        $_SESSION['profile']    = $user['profile'];
-        $_SESSION['email']      = $user['email'];
-        $_SESSION['theme']      = $user['theme'];
+        // ✅ Crear payload del token
+        $payload = [
+            "iss" => $issuer,
+            "aud" => $audience,
+            "iat" => $issued_at,
+            "exp" => $expiration_time,
+            "data" => [
+                "id_user" => $user['id_user'],
+                "username" => $user['username'],
+                "email" => $user['email'],
+                "role" => $user['role'],
+                "profile" => $user['profile']
+            ]
+        ];
 
-        echo json_encode(["success" => true, "theme" => $user['theme']]);
+        // ✅ Generar token
+        $jwt = JWT::encode($payload, $secret_key, 'HS256');
+
+        echo json_encode([
+            "success" => true,
+            "serviceToken" => $jwt,
+            "user" => [
+                "id_user" => $user['id_user'],
+                "username" => $user['username'],
+                "email" => $user['email'],
+                "role" => $user['role'],
+                "profile" => $user['profile'],
+                "theme" => $user['theme']
+            ]
+        ]);
     } else {
         http_response_code(401);
-        echo json_encode(["error" => "Credenciales incorrectas o usuario no activo"]);
+        echo json_encode(["error" => "Credenciales incorrectas"]);
     }
 } else {
     http_response_code(401);
-    echo json_encode(["error" => "Credenciales incorrectas o usuario no activo"]);
+    echo json_encode(["error" => "Credenciales incorrectas"]);
 }
 
 $stmt->close();
