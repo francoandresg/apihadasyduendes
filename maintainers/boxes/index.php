@@ -1,4 +1,5 @@
 <?php
+include '../../headers.php';
 require_once __DIR__ . '/../../config/database.php';
 
 header("Content-Type: application/json");
@@ -9,6 +10,22 @@ try {
 
     switch ($method) {
         case 'GET':
+
+            if (isset($_GET['selector'])) {
+                $result = $conn->query("SELECT id_box, box FROM boxes ORDER BY box ASC");
+
+                $data = [];
+                while ($row = $result->fetch_assoc()) {
+                    $data[] = [
+                        "id" => (int)$row["id_box"],
+                        "name" => $row["box"]
+                    ];
+                }
+
+                echo json_encode(["success" => true, "data" => $data]);
+                break;
+            }
+
             $stmt = $conn->prepare("SELECT id_box, box FROM boxes ORDER BY id_box DESC");
             $stmt->execute();
             $result = $stmt->get_result();
